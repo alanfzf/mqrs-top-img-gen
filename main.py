@@ -1,23 +1,20 @@
-from util import excel_util as excel
-from util import tw_util as tw
-from util import img_util as img
+from util import excel 
+from util import format
+from util import scraper
+from util import img
 
+# Excel stuff
+table = excel.get_data_from_table()
+scores = excel.get_scores_from_table(table)
+users = excel.get_values_from_col(table, 1)
 
-def get_users(data):
-    users = excel.get_values_from_col(data, 1)
-    bad_tw_users = list(filter(lambda v: not tw.valid_tw_user(v), users))
-    user_copy = [user for user in users if user not in bad_tw_users]
-    no_avatar = list(filter(lambda v: not img.user_has_avatar(v), user_copy))
-    return no_avatar
+# Validate data
+valid_users = format.validate_users(users)
 
-# extract the data
-data = excel.extract_data()
+# Scrape profile pictures
+imgs = scraper.download_user_images(valid_users)
 
-# generate the avatars
-users = get_users(data)
-avatars = tw.get_profile_pics(users)
-img.generate_avatars(avatars)
-
-# create all images
-values = excel.get_formatted_data(data)
-img.gen_images(values)
+# Generate the images
+score = img.ScoreGenerator(scores, imgs)
+score.generate_images()
+score.generate_names()

@@ -1,3 +1,4 @@
 env/
+files/output/
 **/__pycache__/
 *.pyc

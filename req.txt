@@ -1,4 +1,4 @@
-et-xmlfile==1.1.0
 openpyxl==3.0.10
 Pillow==9.4.0
-tweepy==4.12.1
+requests==2.31.0
+selenium==4.10.0
