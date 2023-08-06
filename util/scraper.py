@@ -1,34 +1,59 @@
+import os
+import time
 import requests
+
 from io import BytesIO
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.edge.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
 from util import format
-
+from util import dirs
 
 class ImageSearcher:
+
     def __init__(self, user):
         self.user = user
-        self.not_found = (
-            "This account doesn’t exist", 
-            "Hmm...this page doesn’t exist. Try searching for something else."
-        )
+        self.verify = "400x400.jpg"
 
     def __call__(self, driver):
-        # search for user not found
-        span_elements = driver.find_elements(By.TAG_NAME, 'span')
-        for span in span_elements:
-            if span.text in self.not_found:
-                return self.user
-
         # search for the user profile pic
         image_tags = driver.find_elements(By.TAG_NAME, 'img')
         for tag in image_tags:
             src = tag.get_attribute('src')
+            if not src.endswith(self.verify):
+                return "invalid"
             if format.valid_url(src):
                 return src
         return None
+
+class InputFieldSearcher():
+
+    def __init__(self, field_name, field_value):
+        self.field = field_name
+        self.value = field_value
+
+    def __call__(self, driver):
+        input_fields = driver.find_elements(By.TAG_NAME, 'input')
+        for input in input_fields:
+            try:
+                input.send_keys(self.value)
+                return "done" 
+            except Exception:
+                pass
+        return None
+
+class ButtonSearcher:
+
+    def __init__(self, button_name):
+        self.button = button_name
+        self.pattern = "//div[@role='button']"
+
+    def __call__(self, driver):
+        buttons = driver.find_elements(By.XPATH, self.pattern)
+        button = next(iter([btn for btn in buttons if self.button == btn.text]), None)
+        return button
+
 
 def download_image(url):
     img_bytes = None
@@ -39,29 +64,47 @@ def download_image(url):
         raise e
     return img_bytes
 
+
 def download_user_images(user_names):
+    user, pswrd = os.getenv("TW_USER"), os.getenv("TW_PASSWORD")
+    has_cookies = dirs.cookies_exist()
     opts = Options()
-    opts.add_argument("--headless")  
-    opts.add_argument("--disable-extensions")  
+    # opts.add_argument("--headless")
 
     driver = webdriver.Edge(options=opts)
-    images = {}
-    invalid = []
+    data_wait = WebDriverWait(driver, 5)
 
+    # LOG INTO THE ACCOUNT
+    # TODO: Check if the cookies are expired
+    if not has_cookies:
+        driver.get(f'https://twitter.com/i/flow/login')
+        data_wait.until(InputFieldSearcher('text', user)) # can be null
+        data_wait.until(ButtonSearcher('Next')).click() # can be null 
+        data_wait.until(InputFieldSearcher('password', pswrd)) # can be null
+        data_wait.until(ButtonSearcher('Log in')).click() # can be null
+        time.sleep(5)
+        dirs.save_cookies(driver.get_cookies())
+    else:
+        driver.get('https://twitter.com')
+        cookies = dirs.load_cookies()
+        for cookie in cookies:
+            driver.add_cookie(cookie)
+
+    accounts = {}
     for user in user_names:
         driver.get(f'https://twitter.com/{user}/photo')
-        data_wait = WebDriverWait(driver, 5)
-        image_url = data_wait.until(ImageSearcher(user))
-        if not format.valid_url(image_url):
-            invalid.append(image_url)
-            continue
-        bytes = download_image(image_url)
-        images[user] = bytes
+        url = data_wait.until(ImageSearcher(user))
+        if url == "invalid":
+            url = None
+        accounts[user] = url
 
+    # close the driver
     driver.quit()
 
+    invalid = ', '.join([name for name in accounts.keys() if accounts[name] is None])
     if len(invalid) > 0:
-        bad = ', '.join(invalid)
-        raise Exception(f"Users not found: {bad}")
+        raise Exception(f"Users not found: {invalid}")
+
+    images = {acc: download_image(img) for acc, img in accounts.items()}
 
     return images

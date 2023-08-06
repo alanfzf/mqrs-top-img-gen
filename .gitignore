@@ -2,3 +2,5 @@ env/
 files/output/
 **/__pycache__/
 *.pyc
+.env
+files/cookies.pkl
