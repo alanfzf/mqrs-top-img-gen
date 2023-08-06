@@ -21,9 +21,7 @@ class ImageSearcher:
         image_tags = driver.find_elements(By.TAG_NAME, 'img')
         for tag in image_tags:
             src = tag.get_attribute('src')
-            if not src.endswith(self.verify):
-                return "invalid"
-            if format.valid_url(src):
+            if format.valid_url(src) and src.endswith(self.verify):
                 return src
         return None
 
@@ -91,12 +89,21 @@ def download_user_images(user_names):
             driver.add_cookie(cookie)
 
     accounts = {}
+    count = 0
     for user in user_names:
-        driver.get(f'https://twitter.com/{user}/photo')
-        url = data_wait.until(ImageSearcher(user))
-        if url == "invalid":
+        url = None
+        if count >= 45:
+            # wait around 15 minutes
+            time.sleep(60*15.5)
+            print('Rate limit reached, waiting 15minutes')
+
+        try:
+            driver.get(f'https://twitter.com/{user}/photo')
+            url = data_wait.until(ImageSearcher(user))
+        except Exception:
             url = None
         accounts[user] = url
+        count += 1
 
     # close the driver
     driver.quit()
