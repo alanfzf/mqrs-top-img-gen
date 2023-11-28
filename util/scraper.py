@@ -55,8 +55,8 @@ def download_user_images(user_names):
         if not format.valid_url(image_url):
             invalid.append(image_url)
             continue
-        bytes = download_image(image_url)
-        images[user] = bytes
+        img_bytes = download_image(image_url)
+        images[user] = img_bytes
 
     driver.quit()
 

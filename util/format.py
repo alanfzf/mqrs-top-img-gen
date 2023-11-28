@@ -4,20 +4,23 @@ INVALID_CHARS_FILE = '[<>:"\\\/|?*]'
 TW_USER_PATTERN = r"^(@)?(\w{1,15})$"
 TW_PROFILE_PIC_PATTERN = r'^https://pbs.twimg.com/profile_images/'
 
-
-def remove_invalid(string):
+def remove_invalid_chars(string):
     return re.sub(INVALID_CHARS_FILE, '', string)
 
 def get_font_color(val):
     if val <= 3.0:
-        return "#fb3232"
-    elif val > 3.0 and val <=5.0:
-        return "#fffd58"
+        return "#FB3232"
+    elif val > 3.0 and val <= 5.0:
+        return "#FFFD58"
     else: 
-        return "#58ff68"
+        return "#58FF68"
 
 def get_text_format(val):
-    return '' if val <= 0 else f'{val:0.1f}' 
+    try:
+        num = float(val)
+        return f'{num:0.1f}'
+    except:
+        return ''
 
 def validate_users(user_list):
     valid = []
