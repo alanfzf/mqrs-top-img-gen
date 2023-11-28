@@ -1,6 +1,6 @@
 import openpyxl
 from .dirs import get_excel_file
-from .format import remove_invalid
+from .format import remove_invalid_chars
 
 T_NAME = 'votaciones'
 
@@ -14,8 +14,7 @@ def get_workbook():
 
 def get_data_from_table():
     sheet = get_workbook()._sheets[0]
-    table = next((table for table in sheet.tables.values() 
-        if table.name == T_NAME), None)
+    table = next((table for table in sheet.tables.values() if table.name == T_NAME), None)
 
     if table is None:
         raise Exception("No se ha encontrado la tabla llamada votaciones!")
@@ -43,9 +42,9 @@ def get_scores_from_table(table):
     scores = {}
 
     for col, title in enumerate(titles, start=2):
-        uscores = [{"user": item[1].replace('@', ''), "score": item[col]} for item in table[1:]]
+        uscores = [{"user": item[1], "score": item[col]} for item in table[1:]]
         chunks = [uscores[i:i+chunk_size] for i in range(0, len(uscores), chunk_size)]
-        scores[remove_invalid(title)] = chunks
+        scores[remove_invalid_chars(title)] = chunks
 
     return scores
 

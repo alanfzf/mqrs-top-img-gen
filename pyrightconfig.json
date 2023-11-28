@@ -1,1 +1,10 @@
-{"executionEnvironments": [{"root": "src"}]}
+{
+  "executionEnvironments": 
+  [
+    {
+      "root": "src",
+      "venvPath": ".",
+      "venv": ".env"
+    }
+  ]
+}

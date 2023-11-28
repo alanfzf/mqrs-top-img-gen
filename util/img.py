@@ -58,7 +58,7 @@ class ScoreGenerator():
                             raise StopIteration
 
                         usr = uscores.pop(0)
-                        num = usr.get('score', 0)
+                        num = usr.get('score', None)
                         uname = usr.get('user', None)
                         logo = self.get_avatar(uname)
                         img.paste(logo, (sx,sy), circle)
