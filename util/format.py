@@ -8,6 +8,8 @@ def remove_invalid_chars(string):
     return re.sub(INVALID_CHARS_FILE, '', string)
 
 def get_font_color(val):
+    if not is_number(val):
+        return "#FFFFFF"
     if val <= 3.0:
         return "#FB3232"
     elif val > 3.0 and val <= 5.0:
@@ -16,11 +18,13 @@ def get_font_color(val):
         return "#58FF68"
 
 def get_text_format(val):
-    try:
-        num = float(val)
-        return f'{num:0.1f}'
-    except:
+    if is_number(val):
+        return f'{val:0.1f}'
+    else:
         return ''
+
+def is_number(val):
+    return isinstance(val, (int, float))
 
 def validate_users(user_list):
     valid = []

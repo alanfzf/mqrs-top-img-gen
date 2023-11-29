@@ -69,7 +69,7 @@ def download_user_images(user_names):
     opts = Options()
     # opts.add_argument("--headless")
 
-    if user and pswrd:
+    if not user or not pswrd:
         raise Exception("The envs for TW_USER and TW_PASSWORD have not been set!")
 
 
