@@ -62,6 +62,7 @@ class ScoreGenerator():
                         uname = usr.get('user', None)
                         logo = self.get_avatar(uname)
                         img.paste(logo, (sx,sy), circle)
+
                         draw.text((sx,sy), get_text_format(num), 
                                   fill=get_font_color(num), 
                                   font=FONT, stroke_width=2, 

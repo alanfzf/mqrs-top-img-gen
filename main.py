@@ -2,6 +2,10 @@ from util import excel
 from util import format
 from util import scraper
 from util import img
+from dotenv import load_dotenv
+
+# Load env
+load_dotenv()
 
 # Excel stuff
 table = excel.get_data_from_table()
