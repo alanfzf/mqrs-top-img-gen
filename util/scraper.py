@@ -19,6 +19,7 @@ class ImageSearcher:
     def __call__(self, driver):
         # search for the user profile pic
         image_tags = driver.find_elements(By.TAG_NAME, 'img')
+
         for tag in image_tags:
             src = tag.get_attribute('src')
             if format.valid_url(src) and src.endswith(self.verify):
@@ -68,6 +69,7 @@ def download_user_images(user_names):
     has_cookies = dirs.cookies_exist()
     opts = Options()
     # opts.add_argument("--headless")
+    opts.add_argument("--incognito")
 
     if not user or not pswrd:
         raise Exception("The envs for TW_USER and TW_PASSWORD have not been set!")
@@ -96,16 +98,20 @@ def download_user_images(user_names):
     count = 0
     for user in user_names:
         url = None
+        
+        """ 
         if count >= 45:
             # wait around 15 minutes
             print('Rate limit reached, waiting 15 minutes...!')
             time.sleep(60*15.5)
-            count = 0
+            count = 0 
+        """
         try:
             driver.get(f'https://twitter.com/{user}/photo')
             url = data_wait.until(ImageSearcher(user))
-        except Exception:
+        except Exception as e:
             url = None
+            print(f"Ha ocurrido un error al descargar la imagen: {e}")
         accounts[user] = url
         count += 1
 
