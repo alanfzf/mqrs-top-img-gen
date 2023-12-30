@@ -98,9 +98,9 @@ def download_user_images(user_names):
         url = None
         if count >= 45:
             # wait around 15 minutes
+            print('Rate limit reached, waiting 15 minutes...!')
             time.sleep(60*15.5)
-            print('Rate limit reached, waiting 15minutes')
-
+            count = 0
         try:
             driver.get(f'https://twitter.com/{user}/photo')
             url = data_wait.until(ImageSearcher(user))
