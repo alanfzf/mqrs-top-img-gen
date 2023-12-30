@@ -7,6 +7,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import StaleElementReferenceException
+
+
 from util import format
 from util import dirs
 
@@ -14,7 +17,7 @@ class ImageSearcher:
 
     def __init__(self, user):
         self.user = user
-        self.verify = "400x400.jpg"
+        self.verify = "400x400."
 
     def __call__(self, driver):
         # search for the user profile pic
@@ -22,9 +25,8 @@ class ImageSearcher:
 
         for tag in image_tags:
             src = tag.get_attribute('src')
-            if format.valid_url(src) and src.endswith(self.verify):
+            if format.valid_url(src) and self.verify in src:
                 return src
-        return None
 
 class InputFieldSearcher():
 
@@ -40,7 +42,6 @@ class InputFieldSearcher():
                 return "done" 
             except Exception:
                 pass
-        return None
 
 class ButtonSearcher:
 
@@ -69,14 +70,14 @@ def download_user_images(user_names):
     has_cookies = dirs.cookies_exist()
     opts = Options()
     # opts.add_argument("--headless")
-    opts.add_argument("--incognito")
+    opts.add_argument("-inprivate")
 
     if not user or not pswrd:
         raise Exception("The envs for TW_USER and TW_PASSWORD have not been set!")
 
 
     driver = webdriver.Edge(options=opts)
-    data_wait = WebDriverWait(driver, 5)
+    data_wait = WebDriverWait(driver, 10)
 
     # LOG INTO THE ACCOUNT
     # TODO: Check if the cookies are expired
@@ -98,6 +99,7 @@ def download_user_images(user_names):
     count = 0
     for user in user_names:
         url = None
+        subcount = 0
         
         """ 
         if count >= 45:
@@ -106,12 +108,18 @@ def download_user_images(user_names):
             time.sleep(60*15.5)
             count = 0 
         """
-        try:
-            driver.get(f'https://twitter.com/{user}/photo')
-            url = data_wait.until(ImageSearcher(user))
-        except Exception as e:
-            url = None
-            print(f"Ha ocurrido un error al descargar la imagen: {e}")
+        while subcount < 6:
+            try:
+                driver.get(f'https://twitter.com/{user}/photo')
+                url = data_wait.until(ImageSearcher(user))
+                subcount = 7
+            except StaleElementReferenceException as e: 
+                subcount += 1
+                print(f"[!!!] Reintentado... {e}")
+            except Exception as e:
+                url = None
+                break;
+
         accounts[user] = url
         count += 1
 
